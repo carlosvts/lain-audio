@@ -3,23 +3,6 @@
 #include "include/lain_io.h"
 #include <stdio.h>
 
-bool is_wav_valid(WavHeader *wav)
-{
-    if (memcmp(wav->chunk_id, "RIFF", 4) != 0)
-        return false;
-
-    if (memcmp(wav->format, "WAVE", 4) != 0)
-        return false;
-
-    if (memcmp(wav->subchunk1_id, "fmt ", 4) != 0)
-        return false;
-
-    if (memcmp(wav->subchunk2_id, "data", 4) != 0)
-        return false;
-
-    return true;
-}
-
 int main(int argc, char *argv[])
 {
     if (argc != 2)

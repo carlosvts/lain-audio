@@ -53,5 +53,8 @@ typedef struct
 
 // utils
 enum Format audio_detect_format(const WavHeader *raw);
+bool is_wav_valid(WavHeader *wav);
+bool audio_validate_layout(const WavHeader *raw);
+i64 get_num_samples(const WavHeader *raw);
 
 #endif // LAIN_AUDIO_H
