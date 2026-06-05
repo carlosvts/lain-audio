@@ -3,6 +3,9 @@
 
 #include "lain.h"
 
+#define PCM 1
+#define IEEE_FLOAT 3
+
 enum Format
 {
     UNKNOWN = 0,
@@ -47,5 +50,8 @@ typedef struct
 
     WavData rawdata;
 } Audio;
+
+// utils
+enum Format audio_detect_format(const WavHeader *raw);
 
 #endif // LAIN_AUDIO_H
