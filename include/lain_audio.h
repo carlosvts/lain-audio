@@ -37,4 +37,15 @@ typedef struct
     usize data_size;
 } WavData;
 
+typedef struct
+{
+    enum Format format;
+
+    i16 channels;
+    i32 sample_rate;
+    i64 sample_count;
+
+    WavData rawdata;
+} Audio;
+
 #endif // LAIN_AUDIO_H
