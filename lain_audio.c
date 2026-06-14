@@ -1,4 +1,5 @@
 #include "include/lain_audio.h"
+#include "include/lain_io.h"
 #include <string.h> // for memcpy
 enum Format audio_detect_format(const WavHeader *wh)
 {
@@ -60,3 +61,27 @@ i64 get_num_samples(const WavHeader *raw)
     i64 num_samples = raw->subchunk2_size / frame_size;
     return num_samples;
 }
+
+bool audio_from_wav(WavHeader* wheader, Audio* a)
+{
+    if (!audio_validate_layout(wheader)) 
+    { 
+        lain_perror(lain_string("ERROR: while convertindg Wav to proper Audio type\n")); 
+        return false; 
+    }
+    if (!wheader || !a || !is_wav_valid(wheader)) 
+    { 
+        lain_perror(lain_string("ERROR: Invalid wav file while converting into audio")); 
+        return false; 
+    }
+    a->format = audio_detect_format(wheader);
+    a->channels = wheader->num_channels;
+    a->sample_rate = wheader->sample_rate;
+    a->sample_count = get_num_samples(wheader);
+
+    a->rawdata.data = NULL;
+    a->rawdata.data_size = wheader->subchunk2_size;
+
+   return true; 
+}
+

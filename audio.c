@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     }
     WavHeader wavheader;
     WavData wavdata;
-
+    
     char *path = argv[1];
     i32 fd = lain_open(lain_string(path));
 
