@@ -51,15 +51,32 @@ typedef struct
     WavData rawdata;
 } Audio;
 
+typedef struct
+{
+    f32 *bars;
+    i32 bar_count;
+    i32 samples_per_bar;
+    i64 last_frame;
+    i32 bar_index;
+    f32 bar_peak;
+    i32 samples_in_bar;
+} AudioVisualizer;
+
 // utils
+bool audio_read_full(i32 fd, void *buffer, usize size);
 enum Format audio_detect_format(const WavHeader *raw);
+bool audio_read_wav_header(i32 fd, WavHeader *wavheader);
 bool is_wav_valid(WavHeader *wav);
 bool audio_validate_layout(const WavHeader *raw);
 i64 get_num_samples(const WavHeader *raw);
 // converting into proper Audio format
 bool audio_from_wav(WavHeader* wheader, Audio* a);
+bool audio_load_wav(char *path, WavHeader *wavheader, Audio *audio);
+void audio_free(Audio *audio);
 // get a specific sample of the audio and normalize it 
 f32 audio_get_sample(const Audio *audio, i64 frame, i32 channel);
 // get peak of amplitude, return sample 
 f32 audio_peak(const Audio *audio, i64 start_frame, i64 frame_count, i32 channel);
+void audio_visualizer_reset(AudioVisualizer *visualizer);
+void audio_visualizer_update(AudioVisualizer *visualizer, const Audio *audio, f32 played_seconds);
 #endif // LAIN_AUDIO_H
