@@ -58,4 +58,8 @@ bool audio_validate_layout(const WavHeader *raw);
 i64 get_num_samples(const WavHeader *raw);
 // converting into proper Audio format
 bool audio_from_wav(WavHeader* wheader, Audio* a);
+// get a specific sample of the audio and normalize it 
+f32 audio_get_sample(const Audio *audio, i64 frame, i32 channel);
+// get peak of amplitude, return sample 
+f32 audio_peak(const Audio *audio, i64 start_frame, i64 frame_count, i32 channel);
 #endif // LAIN_AUDIO_H

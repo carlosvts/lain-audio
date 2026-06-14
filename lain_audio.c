@@ -85,3 +85,73 @@ bool audio_from_wav(WavHeader* wheader, Audio* a)
    return true; 
 }
 
+f32 audio_get_sample(const Audio *audio, i64 frame, i32 channel)
+{
+    if (!audio || !audio->rawdata.data)
+        return 0.0f;
+
+    if (channel < 0 || channel >= audio->channels)
+        return 0.0f;
+
+    if (frame < 0 || frame >= audio->sample_count)
+        return 0.0f;
+
+    i64 index = frame * audio->channels + channel;
+
+    switch (audio->format)
+    {
+        // Normalizing each case of format in the interval [0,1]
+        case U8:
+        {
+            u8 *samples = (u8 *)audio->rawdata.data;
+            return ((f32)samples[index] - 128.0f) / 128.0f;
+        }
+
+        case S16:
+        {
+            i16 *samples = (i16 *)audio->rawdata.data;
+            return (f32)samples[index] / 32768.0f;
+        }
+
+        case S32:
+        {
+            i32 *samples = (i32 *)audio->rawdata.data;
+            return (f32)samples[index] / 2147483648.0f;
+        }
+
+        case F32:
+        {
+            f32 *samples = (f32 *)audio->rawdata.data;
+            return samples[index];
+        }
+
+        default:
+            return 0.0f;
+    }
+}
+// get the highest peak of amplitude in audio
+f32 audio_peak(const Audio *audio, i64 start_frame, i64 frame_count, i32 channel)
+{
+    f32 peak = 0.0f;
+
+    if (!audio || frame_count <= 0)
+        return 0.0f;
+
+    i64 end = start_frame + frame_count;
+
+    if (end > audio->sample_count)
+        end = audio->sample_count;
+
+    for (i64 frame = start_frame; frame < end; frame++)
+    {
+        f32 sample = audio_get_sample(audio, frame, channel);
+
+        if (sample < 0.0f)
+            sample = -sample;
+
+        if (sample > peak)
+            peak = sample;
+    }
+
+    return peak;
+}
