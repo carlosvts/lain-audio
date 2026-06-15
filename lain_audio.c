@@ -362,46 +362,63 @@ void audio_visualizer_update(AudioVisualizer *visualizer, const Audio *audio, f3
         return;
     }
 
-    const i64 playhead_frame = (i64)(played_seconds * (f32)audio->sample_rate);
+    i64 playhead_frame = (i64)(played_seconds * (f32)audio->sample_rate);
+    i64 frame_count = (i64)visualizer->bar_count * visualizer->samples_per_bar;
 
     if (playhead_frame < visualizer->last_frame)
         audio_visualizer_reset(visualizer);
 
-    for (i64 frame = visualizer->last_frame;
-         frame < playhead_frame && frame < audio->sample_count;
-         frame++)
+    for (i32 i = 0; i < visualizer->bar_count; i++)
+        visualizer->bars[i] = 0.0f;
+
+    if (playhead_frame > audio->sample_count)
+        playhead_frame = audio->sample_count;
+
+    i64 start_frame = playhead_frame - frame_count;
+    i64 end_frame = playhead_frame;
+
+    if (start_frame < 0)
+        start_frame = 0;
+
+    if (end_frame <= start_frame)
+        return;
+
+    for (i32 i = 0; i < visualizer->bar_count; i++)
     {
+        i64 bar_start = start_frame + ((i64)i * visualizer->samples_per_bar);
+        i64 bar_end = bar_start + visualizer->samples_per_bar;
         f32 peak = 0.0f;
 
-        for (i32 channel = 0; channel < audio->channels; channel++)
+        if (bar_start >= end_frame)
+            break;
+
+        if (bar_end > end_frame)
+            bar_end = end_frame;
+
+        for (i64 frame = bar_start; frame < bar_end; frame++)
         {
-            f32 sample = audio_get_sample(audio, frame, channel);
+            for (i32 channel = 0; channel < audio->channels; channel++)
+            {
+                f32 sample = audio_get_sample(audio, frame, channel);
 
-            if (sample < 0.0f)
-                sample = -sample;
+                if (sample < 0.0f)
+                    sample = -sample;
 
-            if (sample > peak)
-                peak = sample;
+                if (sample > peak)
+                    peak = sample;
+            }
         }
 
-        if (peak > visualizer->bar_peak)
-            visualizer->bar_peak = peak;
-
-        visualizer->samples_in_bar++;
-
-        if (visualizer->samples_in_bar >= visualizer->samples_per_bar)
-        {
-            if (visualizer->bar_peak > 1.0f)
-                visualizer->bar_peak = 1.0f;
-
-            visualizer->bars[visualizer->bar_index] = visualizer->bar_peak;
-            visualizer->bar_index = (visualizer->bar_index + 1) % visualizer->bar_count;
-
-            visualizer->bars[visualizer->bar_index] = 0.0f;
-            visualizer->bar_peak = 0.0f;
-            visualizer->samples_in_bar = 0;
-        }
+        if (peak > 1.0f)
+            peak = 1.0f;
+        
+        // adds the sum of amplitude of a slice of the sample into the visualizer
+        visualizer->bars[i] = peak;
     }
-
+    
+    // resets the bar index
     visualizer->last_frame = playhead_frame;
+    visualizer->bar_index = 0;
+    visualizer->bar_peak = 0.0f;
+    visualizer->samples_in_bar = 0;
 }
